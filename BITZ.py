@@ -49,7 +49,7 @@ class BITZ:
     def howMuchEarnDaily(self, staked):
         apr_fraction = self._get_apr() / 100  
         daily_earn = staked * apr_fraction 
-        return f'Fam, daily you will earn:\n{round(daily_earn, 3)} BITZ'
+        return f'Fam, daily you will earn:\n{round(daily_earn, 3)} $BITZ'
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
@@ -74,9 +74,10 @@ async def update_status():
 @tree.command(name="dailystackingyield", description="Calculate daily earnings from staked BITZ", guild=discord.Object(id=GUILD_ID))
 @app_commands.describe(amount='Amount of BITZ staked')
 async def dailyprofit(interaction: discord.Interaction, amount: float):
-    bitz._fetch_total_staked()  # refresh APR
+    await interaction.response.defer(thinking=True)
+    bitz._fetch_total_staked()
     response = bitz.howMuchEarnDaily(amount)
-    await interaction.response.send_message(response)
+    await interaction.followup.send(response)
 
 @client.event
 async def on_ready():

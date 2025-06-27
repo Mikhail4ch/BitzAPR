@@ -49,7 +49,7 @@ class BITZ:
     def howMuchEarnDaily(self, staked):
         apr_fraction = self._get_apr() / 100  
         daily_earn = staked * apr_fraction 
-        return f'Fam, daily you will earn:\n{round(daily_earn, 3)} $BITZ'
+        return f'Fam, by staking {int(staked)} $BITZ\nyou will earn daily:\n{round(daily_earn, 3)} $BITZ'
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)

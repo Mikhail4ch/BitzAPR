@@ -46,10 +46,24 @@ class BITZ:
         apr = self._rewardPool / self._totalStaked * 365 * 100
         return f'Annual APR = {round(apr)}％'
 
-    def howMuchEarnDaily(self, staked):
-        apr_fraction = self._get_apr() / 100  
-        daily_earn = staked * apr_fraction 
-        return f'Fam, by staking {int(staked)} $BITZ\nyou will earn daily:\n{round(daily_earn, 3)} $BITZ'
+    def bitz_summary(self, initial_amount):
+        apr = self._get_apr()  # This should return the annual APR as a percent (not fraction)
+        apr_fraction = apr * 365 / 100  # Convert to decimal
+
+        period_days = {
+            "Daily": 1,
+            "Weekly": 7,
+            "Monthly": 30.436875,
+            "Yearly": 365
+        }
+
+        results = []
+        results.append(f"⬇️ Fam, by staking {initial_amount} $BITZ ⬇️")
+        for label, days in period_days.items():
+            earn = initial_amount * apr_fraction * (days / 365)
+            results.append(f"👉 {label} you will earn: {earn:.3f} $BITZ")
+
+        return "\n".join(results)
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
@@ -71,12 +85,12 @@ async def update_status():
             print(f"Failed to update status: {e}")
         await asyncio.sleep(300)
 
-@tree.command(name="dailystackingyield", description="Calculate daily earnings from staked BITZ", guild=discord.Object(id=GUILD_ID))
+@tree.command(name="purestakingyield", description="Calculate daily earnings from staked BITZ", guild=discord.Object(id=GUILD_ID))
 @app_commands.describe(amount='Amount of BITZ staked')
 async def dailyprofit(interaction: discord.Interaction, amount: float):
     await interaction.response.defer(thinking=True)
     bitz._fetch_total_staked()
-    response = bitz.howMuchEarnDaily(amount)
+    response = bitz.bitz_summary(amount)
     await interaction.followup.send(response)
 
 @client.event

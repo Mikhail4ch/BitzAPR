@@ -4,19 +4,19 @@ import requests
 from fake_useragent import FakeUserAgent
 from discord import app_commands
 
-# List of guild (server) IDs where the command should be available instantly
 GUILD_IDS = [
-    1387438507559223308,  # Your original server
-    1020496431959785503,   # Add the new server's guild ID here
-    # Add more guild IDs if needed
+    1387438507559223308,
+    1020496431959785503,
+    # Add more as needed
 ]
-TOKEN = 'MTM4NzQyMjA3MTkzMTUzNTM4MA.GP_AeL.BlKwn2-D4-I97y-lBfFE-UtGOwSPtIlVFqnGXM'  # Replace with your new Discord bot token
+TOKEN = 'MTM4NzQyMjA3MTkzMTUzNTM4MA.GP_AeL.BlKwn2-D4-I97y-lBfFE-UtGOwSPtIlVFqnGXM'
 
 headers = {
     'user-agent': FakeUserAgent().random
 }
 
 class BITZ:
+    # ... your BITZ class unchanged ...
     def __init__(self):
         self._rewardPool = 720
         self._api = 'https://api.eclipsescan.xyz/v1/account/tokens?address=5FgZ9W81khmNXG8i96HSsG7oJiwwpKnVzmHgn9ZnqQja'
@@ -52,8 +52,8 @@ class BITZ:
         return f'Annual APR = {round(apr)}%'
 
     def bitz_summary(self, initial_amount):
-        apr = self._get_apr()  # This should return the annual APR as a percent (not fraction)
-        apr_fraction = apr * 365 / 100  # Convert to decimal
+        apr = self._get_apr()
+        apr_fraction = apr * 365 / 100
 
         period_days = {
             "Daily": 1,
@@ -90,17 +90,21 @@ async def update_status():
             print(f"Failed to update status: {e}")
         await asyncio.sleep(300)
 
-# Register the command once (not per guild)
-@tree.command(
-    name="purestakingyield",
-    description="Calculate daily earnings from staked BITZ"
-)
-@app_commands.describe(amount='Amount of BITZ staked')
-async def dailyprofit(interaction: discord.Interaction, amount: float):
-    await interaction.response.defer(thinking=True)
-    bitz._fetch_total_staked()
-    response = bitz.bitz_summary(amount)
-    await interaction.followup.send(response)
+def setup_commands_for_guild(guild_id):
+    @tree.command(
+        name="purestakingyield",
+        description="Calculate daily earnings from staked BITZ",
+        guild=discord.Object(id=guild_id)
+    )
+    @app_commands.describe(amount='Amount of BITZ staked')
+    async def dailyprofit(interaction: discord.Interaction, amount: float):
+        await interaction.response.defer(thinking=True)
+        bitz._fetch_total_staked()
+        response = bitz.bitz_summary(amount)
+        await interaction.followup.send(response)
+
+for guild_id in GUILD_IDS:
+    setup_commands_for_guild(guild_id)
 
 @client.event
 async def on_ready():
@@ -114,6 +118,7 @@ async def on_ready():
     client.loop.create_task(update_status())
 
 client.run(TOKEN)
+
 
 
 

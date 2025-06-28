@@ -6,7 +6,7 @@ from discord import app_commands
 
 GUILD_IDS = [
     1387438507559223308,
-    1020496431959785503,
+    1360477687071899719,
     # Add more as needed
 ]
 TOKEN = 'MTM4NzQyMjA3MTkzMTUzNTM4MA.GP_AeL.BlKwn2-D4-I97y-lBfFE-UtGOwSPtIlVFqnGXM'

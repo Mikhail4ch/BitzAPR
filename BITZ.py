@@ -4,8 +4,13 @@ import requests
 from fake_useragent import FakeUserAgent
 from discord import app_commands
 
-TOKEN = 'MTM4NzQyMjA3MTkzMTUzNTM4MA.GP_AeL.BlKwn2-D4-I97y-lBfFE-UtGOwSPtIlVFqnGXM'
-GUILD_ID = 1387438507559223308  # make sure this is your test server ID, as an int
+# List of guild (server) IDs where the command should be available instantly
+GUILD_IDS = [
+    1387438507559223308,  # Your original server
+    1020496431959785503,   # Add the new server's guild ID here
+    # Add more guild IDs if needed
+]
+TOKEN = 'MTM4NzQyMjA3MTkzMTUzNTM4MA.GP_AeL.BlKwn2-D4-I97y-lBfFE-UtGOwSPtIlVFqnGXM'  # Replace with your new Discord bot token
 
 headers = {
     'user-agent': FakeUserAgent().random
@@ -38,13 +43,13 @@ class BITZ:
 
     def findOutApr(self):
         apr = self._get_apr()
-        return f'24H APR = {apr}％'
+        return f'24H APR = {apr}%'
 
     def annualAPR(self):
         if not self._totalStaked or self._totalStaked == 0:
             return "Annual APR = N/A"
         apr = self._rewardPool / self._totalStaked * 365 * 100
-        return f'Annual APR = {round(apr)}％'
+        return f'Annual APR = {round(apr)}%'
 
     def bitz_summary(self, initial_amount):
         apr = self._get_apr()  # This should return the annual APR as a percent (not fraction)
@@ -75,17 +80,21 @@ async def update_status():
     while not client.is_closed():
         try:
             bitz._fetch_total_staked()
-            apr24 = bitz.findOutApr().replace('％', '%').split('=')[1].strip()
-            aprAnnual = bitz.annualAPR().replace('％', '%').split('=')[1].strip()
-            status_text = f"24H: {apr24} | Annual: {aprAnnual}"
-            activity = discord.Activity(type=discord.ActivityType.custom, state=status_text,name='123')
+            apr24 = bitz.findOutApr().replace('%', '').split('=')[1].strip()
+            aprAnnual = bitz.annualAPR().replace('%', '').split('=')[1].strip()
+            status_text = f"24H: {apr24}% | Annual: {aprAnnual}%"
+            activity = discord.Activity(type=discord.ActivityType.custom, state=status_text, name='123')
             await client.change_presence(activity=activity)
             print(f"Set custom activity: {status_text}")
         except Exception as e:
             print(f"Failed to update status: {e}")
         await asyncio.sleep(300)
 
-@tree.command(name="purestakingyield", description="Calculate daily earnings from staked BITZ", guild=discord.Object(id=GUILD_ID))
+# Register the command once (not per guild)
+@tree.command(
+    name="purestakingyield",
+    description="Calculate daily earnings from staked BITZ"
+)
 @app_commands.describe(amount='Amount of BITZ staked')
 async def dailyprofit(interaction: discord.Interaction, amount: float):
     await interaction.response.defer(thinking=True)
@@ -96,10 +105,16 @@ async def dailyprofit(interaction: discord.Interaction, amount: float):
 @client.event
 async def on_ready():
     print(f'Logged in as {client.user}')
-    await tree.sync(guild=discord.Object(id=GUILD_ID))
+    for guild_id in GUILD_IDS:
+        try:
+            await tree.sync(guild=discord.Object(id=guild_id))
+            print(f'Synced commands for guild {guild_id}')
+        except Exception as e:
+            print(f'Failed to sync for guild {guild_id}: {e}')
     client.loop.create_task(update_status())
 
 client.run(TOKEN)
+
 
 
 
